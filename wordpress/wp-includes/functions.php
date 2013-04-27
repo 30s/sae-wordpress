@@ -5,6 +5,7 @@
  * @package WordPress
  */
 
+include( ABSPATH . '/sae.php' );
 require( ABSPATH . WPINC . '/option.php' );
 
 /**
@@ -1312,20 +1313,28 @@ function wp_get_original_referer() {
  * @return bool Whether the path was created. True if path already exists.
  */
 function wp_mkdir_p( $target ) {
-	$wrapper = null;
+	// $wrapper = null;
 
-	// strip the protocol
-	if( wp_is_stream( $target ) ) {
-		list( $wrapper, $target ) = explode( '://', $target, 2 );
-	}
+	// // strip the protocol
+	// if( wp_is_stream( $target ) ) {
+	// 	list( $wrapper, $target ) = explode( '://', $target, 2 );
+	// }
 
-	// from php.net/mkdir user contributed notes
-	$target = str_replace( '//', '/', $target );
+	// // from php.net/mkdir user contributed notes
+	// $target = str_replace( '//', '/', $target );
 
-	// put the wrapper back on the target
-	if( $wrapper !== null ) {
-		$target = $wrapper . '://' . $target;
-	}
+	// // put the wrapper back on the target
+	// if( $wrapper !== null ) {
+	// 	$target = $wrapper . '://' . $target;
+	// }
+
+        //for SAE begin
+        // from php.net/mkdir user contributed notes
+        if ( substr($target, 0, 10) == 'saestor://' ) {
+           return true;
+        }
+        $target = str_replace( '//', '/', $target );
+        //for SAE end
 
 	// safe mode fails with a trailing slash under certain PHP versions.
 	$target = rtrim($target, '/'); // Use rtrim() instead of untrailingslashit to avoid formatting.php dependency.
@@ -1566,6 +1575,10 @@ function wp_upload_dir( $time = null ) {
 		}
 	}
 
+        // for SAE begin
+        $dir = SAE_DIR;
+        $url = SAE_URL;
+        //for SAE end
 	$basedir = $dir;
 	$baseurl = $url;
 
@@ -3609,6 +3622,15 @@ function __return_empty_array() {
 function __return_null() {
 	return null;
 }
+
+// for SAE begin
+if ( !function_exists('utf8_encode') ) {
+   function utf8_encode($str) {
+            $encoding_in = mb_detect_encoding($str);
+            return mb_convert_encoding($str, 'UTF-8', $encoding_in);
+   }
+}
+//for SAE end
 
 /**
  * Send a HTTP header to disable content type sniffing in browsers which support it.
